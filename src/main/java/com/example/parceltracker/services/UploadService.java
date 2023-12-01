@@ -13,14 +13,15 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 
+import static com.example.parceltracker.utils.CodeUtil.generateCode;
 import static com.example.parceltracker.utils.FileColumnNames.*;
 import static com.example.parceltracker.utils.StatusNames.SENT;
 
@@ -37,20 +38,30 @@ public class UploadService {
 
     private List<Sender> sendersInDb;
     private List<Recipient> recipientsInDb;
+    private List<String> parcelsInDbIdentifiers;
     private Status statusSent;
     private Set<Sender> newSenders;
     private Set<Recipient> newRecipients;
     private Set<Parcel> newParcels;
 
 
-    public void uploadFile(File file) throws IOException {
+    public void uploadFile(File file) {
         List<Map<String, String>> excelLinesList = ExcelParser.parseExcel(file);
+        processExcelLines(excelLinesList);
+    }
+
+    public void uploadFile(MultipartFile file) {
+        List<Map<String, String>> excelLinesList = ExcelParser.parseExcel(file);
+        processExcelLines(excelLinesList);
+    }
+
+    private void processExcelLines(List<Map<String, String>> excelLinesList) {
         prepareCollections();
         for (Map<String, String> line : excelLinesList) {
             uploadOneLine(line);
         }
         saveNewData();
-        logger.info("Файл загружен - {} строк", excelLinesList.size());
+        logger.info("Файл обработан - {} строк", excelLinesList.size());
     }
 
     private void uploadOneLine(Map<String, String> line) {
@@ -76,6 +87,11 @@ public class UploadService {
             return;
         }
 
+        if (parcelsInDbIdentifiers.contains(identifier)) {
+            logger.error("В базе данных уже существует отправление с идентификатором: {}", identifier);
+            return;
+        }
+
         Parcel parcel = Parcel.builder()
                 .identifier(identifier)
                 .weight(weight)
@@ -88,12 +104,13 @@ public class UploadService {
                 .build();
 
         newParcels.add(parcel);
-        logger.info("Добавлено отправление {}", line.get(identifier));
+        logger.info("Добавлено отправление {}", identifier);
     }
 
     private void prepareCollections() {
         sendersInDb = senderRepo.findAll();
         recipientsInDb = recipientRepo.findAll();
+        parcelsInDbIdentifiers = parcelRepo.findAllIdentifiers();
 
         newSenders = new HashSet<>();
         newRecipients = new HashSet<>();
@@ -154,11 +171,4 @@ public class UploadService {
         return LocalDate.parse(dateString, formatter);
     }
 
-    public static int generateCode() {
-        Random random = new Random();
-        // Генерируем случайное четырёхзначное число
-        int min = 1000;
-        int max = 9999;
-        return random.nextInt(max - min + 1) + min;
-    }
 }

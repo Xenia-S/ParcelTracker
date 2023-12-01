@@ -18,17 +18,23 @@ public class ExcelParser {
 
     private final static Logger logger = LoggerFactory.getLogger(ExcelParser.class);
 
-    public static List<Map<String, String>> parseExcel(File file) throws IOException {
-        InputStream inputStream = new FileInputStream(file);
-        return parse(inputStream, file.getName());
+    public static List<Map<String, String>> parseExcel(File file) {
+        try (InputStream inputStream = new FileInputStream(file)) {
+            return parse(inputStream, file.getName());
+        } catch (IOException e) {
+            throw new RuntimeException("Ошибка ввода-вывода при обработке файла - " + file.getName() + " - " + e.getMessage());
+        }
     }
 
-    public static List<Map<String, String>> parseExcel(MultipartFile multipartFile) throws IOException {
-        InputStream inputStream = multipartFile.getInputStream();
-        return parse(inputStream, multipartFile.getOriginalFilename());
+    public static List<Map<String, String>> parseExcel(MultipartFile multipartFile) {
+        try (InputStream inputStream = multipartFile.getInputStream()) {
+            return parse(inputStream, multipartFile.getOriginalFilename());
+        } catch (IOException e) {
+            throw new RuntimeException("Ошибка ввода-вывода при обработке файла - " + multipartFile.getName() + " - " + e.getMessage());
+        }
     }
 
-    public static List<Map<String, String>> parse(InputStream inputStream, String filename) throws IOException {
+    public static List<Map<String, String>> parse(InputStream inputStream, String filename) {
         List<Map<String, String>> excelDataList = new ArrayList<>();
 
         try (Workbook workbook = WorkbookFactory.create(inputStream)) {
@@ -75,7 +81,7 @@ public class ExcelParser {
                     break;
             }
         } catch (IOException e) {
-            throw new IOException("Ошибка парсинга файла - " + filename + " - " + e.getMessage());
+            throw new RuntimeException("Ошибка парсинга файла - " + filename + " - " + e.getMessage());
         }
         logger.info("Парсинг {} выполнен успешно", filename);
         return excelDataList;
