@@ -42,26 +42,29 @@ public class ScheduledFileUpload {
         if (fileList.isEmpty())
             logger.info("Новых файлов не обнаружено");
 
-        try {
-            for (File file : fileList) {
+        for (File file : fileList) {
 
-                // Проверяем, что файл имеет подходящее расширение
-                boolean extensionFile = fileService.checkFileExtension(file);
+            // Проверяем, что файл имеет подходящее расширение
+            boolean extensionFile = fileService.checkFileExtension(file);
 
-                // Проверяем, что файл не заблокирован
-                boolean closeFile = fileService.checkFileIsLocked(file);
+            // Проверяем, что файл не заблокирован
+            boolean closeFile = fileService.checkFileIsLocked(file);
 
-                if (extensionFile && !closeFile) {
+            if (extensionFile && !closeFile) {
+                try {
                     uploadService.uploadFile(file);
-                    // Перемещаем обработанный файл
-                    fileService.moveFile(file, doneFileDir);
-                } else {
-                    // Перемещаем необработанный файл
+                } catch (Exception e) {
+                    logger.error("При обработке файла {} возникла ошибка", file.getName(), e);
+                    // Перемещаем файл с ошибками
                     fileService.moveFile(file, errorFileDir);
+                    continue;
                 }
+                // Перемещаем обработанный файл
+                fileService.moveFile(file, doneFileDir);
+            } else {
+                // Перемещаем необработанный файл
+                fileService.moveFile(file, errorFileDir);
             }
-        } catch (Exception e) {
-            logger.error("Обработка файлов не удалась", e);
         }
 
         logger.info("[ SCHEDULER END ] - Обработка файлов завершена: {}", LocalDateTime.now(ZONE_ID).format(DATE_TIME_FORMATTER));

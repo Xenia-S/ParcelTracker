@@ -68,8 +68,7 @@ public class ExcelParser {
                                 rowData.put(headers.get(cellIndex), cellValue);
                                 isEmptyRow = false; // Строка не является пустой
                             }
-                        } else
-                            break;
+                        }
                     }
                     if (!isEmptyRow) {
                         if (rowData.keySet().size() != headers.size())

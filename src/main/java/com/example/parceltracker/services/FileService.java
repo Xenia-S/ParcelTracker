@@ -36,6 +36,7 @@ public class FileService {
         String fileName = file.getName();
         if (!(FilenameUtils.isExtension(fileName, "xls", "XLS", "xlsx", "XLSX"))) {
             logger.error("Файл имеет неподдерживаемый формат {}", file.getName());
+            return false;
         }
         return true;
     }
