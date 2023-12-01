@@ -1,4 +1,4 @@
-package com.example.parseltracker;
+package com.example.parceltracker;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -8,7 +8,6 @@ public class ParcelTrackerApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(ParcelTrackerApplication.class, args);
-        System.out.println("hello world");
     }
 
 }
