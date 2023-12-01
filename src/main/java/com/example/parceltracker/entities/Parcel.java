@@ -1,6 +1,7 @@
 package com.example.parceltracker.entities;
 
 import com.example.parceltracker.utils.EntityTimeModel;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -43,6 +44,7 @@ public class Parcel extends EntityTimeModel {
     @JoinColumn(name = "status_id")
     private Status status;
 
+    @JsonIgnore
     private Integer code;
 
     @Override

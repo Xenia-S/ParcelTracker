@@ -1,6 +1,7 @@
 package com.example.parceltracker.entities;
 
 import com.example.parceltracker.utils.EntityTimeModel;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,6 +24,7 @@ public class Status extends EntityTimeModel {
     private String name;
 
     @Column(name = "deleted", columnDefinition = "boolean default false", nullable = false)
+    @JsonIgnore
     private Boolean deleted;
 
 }

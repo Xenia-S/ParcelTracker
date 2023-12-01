@@ -7,8 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.example.parceltracker.utils.Constants.STATUS_EXISTS;
-import static com.example.parceltracker.utils.Constants.STATUS_NOT_FOUND;
+import static com.example.parceltracker.utils.Constants.*;
 
 @Service
 @RequiredArgsConstructor
@@ -58,6 +57,10 @@ public class StatusService {
     public void deleteStatus(Long statusId) {
         Status status = statusRepo.findById(statusId)
                 .orElseThrow(() -> new NullPointerException(STATUS_NOT_FOUND));
+
+        if (status.getDeleted())
+            throw new IllegalArgumentException(STATUS_DELETED);
+
         status.setDeleted(true);
         statusRepo.save(status);
     }
@@ -65,10 +68,12 @@ public class StatusService {
     public Status restoreStatus(Long statusId) {
         Status status = statusRepo.findById(statusId)
                 .orElseThrow(() -> new NullPointerException(STATUS_NOT_FOUND));
-        if (status.getDeleted()) {
-            status.setDeleted(false);
-            statusRepo.save(status);
-        }
+
+        if (!status.getDeleted())
+            throw new IllegalArgumentException(STATUS_NOT_DELETED);
+
+        status.setDeleted(false);
+        statusRepo.save(status);
         return status;
     }
 }
